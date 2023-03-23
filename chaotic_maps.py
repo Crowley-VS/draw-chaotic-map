@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from math import sin, cos
+import numpy as np
 
 class ChaoticMap:
     '''
@@ -33,31 +35,27 @@ class ChaoticMap:
         self.d = d
         self.reset_origin(x0, y0)
 
-    def calculate_x(self, i: int) -> None:
-        '''
-        Caclculate next x value of i^th iteration.
-        Add the new x value to the list of xs.
-
-        :param i: int interation index
-        '''
-        pass
-
-    def calculate_y(self, i: int) -> None:
-        '''
-        Caclculate next y value of i^th iteration.
-        Add the new y value to the list of ys.
-
-        :param i: int interation index
-        '''
-        pass
-    def caclulate(self, i):
+    def calculate(self, i: int) -> None:
         '''
         Caclculate next values of i^th iteration.
         Add the new values to the lists of xs and ys.
 
         :param i: int interation index
         '''
-        pass
+        x = self.xs[i]
+        y = self.ys[i]
+        x_new, y_new = self.step(x, y)
+        self.xs.append(x_new)
+        self.ys.append(y_new)
+
+    def step(self, x, y):
+        '''
+        Perform calculations with given x and y.
+
+        :param x: float x value
+        :param y: float y value
+        '''
+        return x,y 
     def reset_origin(self, x0, y0) -> None:
         '''
         Reset map to a specified origin (x0, y0)
@@ -99,7 +97,7 @@ class Simulator:
         of the the chaotic map.
         '''
         for i in range(self.iter_n):
-            self.chaotic_map.caclulate(i)
+            self.chaotic_map.calculate(i)
         return self.chaotic_map.get_points()
     def change_chaotic_map(self, chaotic_map: ChaoticMap):
         '''
@@ -147,39 +145,17 @@ class TinkerbellMap(ChaoticMap):
         '''
         super().__init__(x0, y0, a, b, c, d)
 
-    def calculate_x(self, i: int) -> None:
+    def step(self, x, y):
         '''
-        Caclculate next x value of i^th iteration.
-        Add the new x value to the list of xs.
+        Perform calculations with given x and y.
 
-        :param i: int interation index
+        :param x: float x value
+        :param y: float y value
         '''
-        x_current = self.xs[i]
-        y_current = self.ys[i]
-        x_new = x_current**2 - y_current**2 + self.a*x_current + self.b*y_current
-        self.xs.append(x_new)
-
-    def calculate_y(self, i: int) -> None:
-        '''
-        Caclculate next y value of i^th iteration.
-        Add the new y value to the list of ys.
-
-        :param i: int interation index
-        '''
-        x_current = self.xs[i]
-        y_current = self.ys[i]
-        y_new = 2*x_current*y_current + self.c*x_current + self.d*y_current
-        self.ys.append(y_new)
-
-    def caclulate(self, i):
-        '''
-        Caclculate next values of i^th iteration.
-        Add the new values to the lists of xs and ys.
-
-        :param i: int interation index
-        '''
-        self.calculate_x(i)
-        self.calculate_y(i)
+        x_new = x**2 - y**2 + self.a*x + self.b*y
+        y_new = 2*x*y + self.c*x + self.d*y
+        return x_new, y_new 
+    
 
 class BogdanovMap(ChaoticMap):
     '''
@@ -209,58 +185,55 @@ class BogdanovMap(ChaoticMap):
         '''
         super().__init__(x0, y0, a, b, c)
 
-    def calculate_x(self, i: int) -> None:
-        '''
-        Caclculate next x value of i^th iteration.
-        Add the new x value to the list of xs.
-
-        :param i: int interation index
-        '''
-        x_current = self.xs[i]
-        self.calculate_y(i)
-        y_current = self.ys[i+1]
-        x_new = x_current + y_current
-        self.xs.append(x_new)
-
-    def calculate_y(self, i: int) -> None:
-        '''
-        Caclculate next y value of i^th iteration.
-        Add the new y value to the list of ys.
-
-        :param i: int interation index
-        '''
-        x_current = self.xs[i]
-        y_current = self.ys[i]
-        y_new = y_current + self.a*y_current + self.b*x_current*(x_current-1) + self.c*x_current*y_current
-        self.ys.append(y_new)
-
-    def bogdanov_step(self,x,y):
+    def step(self,x,y):
         y = y*(1+self.a+self.c*x) + self.b*x*(x-1)
         x = x+y
         return x,y 
 
-    def caclulate(self, i):
+class IkedaMap(ChaoticMap):
+    '''
+    Represents a BogdanovMap
+    '''
+    def __init__(
+        self,
+        a: float,
+        x0: float = 2,
+        y0: float = 2
+    ) -> None:
         '''
-        Caclculate next values of i^th iteration.
-        Add the new values to the lists of xs and ys.
+        Initialize an Ikeda Map System.
+        The a constant can be specified.
+        If not, it defaults to 0.
+        The starting x and y coordinates can be specified.
+        If they are not, the system defaults to (0.1, 0.1).
 
-        :param i: int interation index
+        :param a: float constant 
+        :param x0: float origin point x value
+        :param y0: float origin point y value
+        
         '''
-        print(i)
-        x_current = self.xs[i]
-        y_current = self.ys[i]
-        x,y = self.bogdanov_step(x_current, y_current)
-        self.xs.append(x)
-        self.ys.append(y)
+        super().__init__(x0, y0, a)
+
+    def step(self,x,y):
+        t = 0.4 - 6/(1+x**2+y**2)
+        x_new = 1 + self.a * (x*cos(t) - y*sin(t))
+        y_new = self.a * (x*sin(t) + y*cos(t))
+        return x_new, y_new
 
 if __name__ == '__main__':
     tinkerbel = TinkerbellMap(0.9, -0.6013, 2, 0.5)
-    sim = Simulator(tinkerbel, 10000)
+    sim = Simulator(tinkerbel, 2000)
     i = 0.1
     #sim.change_chaotic_map(BogdanovMap(0.0001, 1.44, -0.1, 0.05, -0.05))
     sim.change_chaotic_map(BogdanovMap(0.0005, 1.44, -0.1,  0.05, 0.05))
     xs, ys = sim.simulate()
     plt.plot(xs, ys, 'ko', markersize=0.5)
+    plt.show()
+    for x0 in np.arange(-5, 5, 0.3):
+        for y0 in np.arange(-5, 5, 0.3):
+            sim.change_chaotic_map(IkedaMap(0.918, x0, y0))
+            xs, ys = sim.simulate()
+            plt.plot(xs, ys, 'ko', markersize=0.2)
     plt.show()
     
 '''
