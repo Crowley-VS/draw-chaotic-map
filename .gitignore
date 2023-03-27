@@ -1,0 +1,4 @@
+.vscode
+.venv
+__pycache__
+manual_test_chotic_maps.py

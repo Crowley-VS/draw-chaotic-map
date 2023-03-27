@@ -1,5 +1,4 @@
-import matplotlib.pyplot as plt
-from math import sin, cos
+from math import sin, cos, pi
 import numpy as np
 
 class ChaoticMap:
@@ -92,13 +91,32 @@ class Simulator:
     def simulate(self) -> None:
         '''
         Calculate lists of points for x and y axis
-        of the Tinkerbell Map System.
+        of the chaotic map.
         Returns lists of points for x and y axis
         of the the chaotic map.
         '''
         for i in range(self.iter_n):
             self.chaotic_map.calculate(i)
         return self.chaotic_map.get_points()
+    def simulate_in_range(self, x0, x1, y0, y1, step):
+        '''
+        Calclulate lists of points for x and y axis
+        of the chaotic map.
+        Creates a generator. Yields lists of points for x and y axis
+        of the the chaotic map.
+
+        :param x0: float starting x point
+        :param x1: float last x point
+        :param y0: float starting y point
+        :param y1: float last y point
+        :param step: float step of the simulation.
+        '''
+        for x in np.arange(x0, x1, step):
+            for y in np.arange(y0, y1, step):
+                self.chaotic_map.reset_origin(x, y)
+                xs, ys = self.simulate()
+                yield xs, ys
+                
     def change_chaotic_map(self, chaotic_map: ChaoticMap):
         '''
         Change current chaotic map to a given one.
@@ -192,7 +210,7 @@ class BogdanovMap(ChaoticMap):
 
 class IkedaMap(ChaoticMap):
     '''
-    Represents a BogdanovMap
+    Represents an Ikeada Map
     '''
     def __init__(
         self,
@@ -205,7 +223,7 @@ class IkedaMap(ChaoticMap):
         The a constant can be specified.
         If not, it defaults to 0.
         The starting x and y coordinates can be specified.
-        If they are not, the system defaults to (0.1, 0.1).
+        If they are not, the system defaults to (2, 2).
 
         :param a: float constant 
         :param x0: float origin point x value
@@ -220,32 +238,59 @@ class IkedaMap(ChaoticMap):
         y_new = self.a * (x*sin(t) + y*cos(t))
         return x_new, y_new
 
-if __name__ == '__main__':
-    tinkerbel = TinkerbellMap(0.9, -0.6013, 2, 0.5)
-    sim = Simulator(tinkerbel, 2000)
-    i = 0.1
-    #sim.change_chaotic_map(BogdanovMap(0.0001, 1.44, -0.1, 0.05, -0.05))
-    sim.change_chaotic_map(BogdanovMap(0.0005, 1.44, -0.1,  0.05, 0.05))
-    xs, ys = sim.simulate()
-    plt.plot(xs, ys, 'ko', markersize=0.5)
-    plt.show()
-    for x0 in np.arange(-5, 5, 0.3):
-        for y0 in np.arange(-5, 5, 0.3):
-            sim.change_chaotic_map(IkedaMap(0.918, x0, y0))
-            xs, ys = sim.simulate()
-            plt.plot(xs, ys, 'ko', markersize=0.2)
-    plt.show()
-    
-'''
-    while i <= 0.9:
-        tinkerbel.a = i
+class GingerbreadMap(ChaoticMap):
+    '''
+    Represents a Gingerbread Map
+    '''
+    def __init__(
+        self,
+        x0: float = 1,
+        y0: float = 2
+    ) -> None:
+        '''
+        Initialize a Gingerbread Map System.
+        The starting x and y coordinates can be specified.
+        If they are not, the system defaults to (0, 0).
 
-        xs2, ys2 = sim.simulate()
-        plt.cla()
-        plt.plot(xs2, ys2, 'ko', markersize=1)
-        plt.show()
-        tinkerbel.reset_origin(0.1, 0.1)
-        i+=0.1
-    def change(a, b, step, constant):
-        pass
-'''
+        :param a: float constant 
+        :param x0: float origin point x value
+        :param y0: float origin point y value
+        
+        '''
+        super().__init__(x0, y0)
+
+    def step(self,x,y):
+        x_new = 1 - y + abs(x)
+        y_new = x
+        return x_new, y_new
+
+class StandardMap(ChaoticMap):
+    '''
+    Represents an Ikeada Map
+    '''
+    def __init__(
+        self,
+        a: float,
+        x0: float = pi,
+        y0: float = pi
+    ) -> None:
+        '''
+        Initialize a Standard Map System.
+        The a constant must me specified.
+        The starting x and y coordinates can be specified.
+        If they are not, the system defaults to (pi, pi).
+
+        :param a: float constant 
+        :param x0: float origin point x value
+        :param y0: float origin point y value
+        
+        '''
+        super().__init__(x0, y0, a)
+
+    def step(self,x,y):
+        x %= 2*pi
+        y_new = y + self.a * sin(x)
+        x_new = x + y_new
+
+        return x_new, y_new
+
