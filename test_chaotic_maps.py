@@ -1,5 +1,5 @@
 from unittest import TestCase
-from chaotic_maps import TinkerbellMap, ChaoticMap, IkedaMap
+from chaotic_maps import TinkerbellMap, ChaoticMap, IkedaMap, BogdanovMap, GingerbreadMap, StandardMap
 from math import sin, cos
 
 class TestChaoticMap(TestCase):
@@ -51,3 +51,63 @@ class TestIkedaMap(TestCase):
         t = 0.4 - 6/(1 + 2**2 + 2**2)
         self.assertEqual(xs2[1], 1 + 0.7 * (2*cos(t) - 2*sin(t)))
         self.assertEqual(ys2[1], 0.7 * (2*sin(t) + 2*cos(t)))
+
+class TestBogdanovMap(TestCase):
+    def setUp(self):
+        self.bogdanovmap = BogdanovMap(0, 1.2, 0, 0.05, 0.05)
+
+    def test_calculate(self):
+        x0 = y0 = 0.05
+        x, y = self.bogdanovmap.step(x0, y0)
+        y_test = y0*(1+0+0*x0) + 1.2*x0*(x0-1)
+        x_test = x0+y_test
+        self.assertEqual(x, x_test)
+        self.assertEqual(y, y_test)
+    def test_calculate_points(self):
+        self.bogdanovmap.calculate(0)
+        xs1, ys1 = self.bogdanovmap.get_points()
+        x0 = y0 = 0.05
+        y_test = y0*(1+0+0*x0) + 1.2*x0*(x0-1)
+        x_test = x0+y_test
+        self.assertEqual(xs1[1], x_test)
+        self.assertEqual(ys1[1], y_test)
+
+class TestGingerbreadMap(TestCase):
+    def setUp(self):
+        self.gingerbreadmap = GingerbreadMap(0.5, 0.5)
+
+    def test_calculate(self):
+        x0 = y0 = 0.5
+        x, y = self.gingerbreadmap.step(x0, y0)
+        x_test = 1 - y0 + abs(x0)
+        y_test = x0
+        self.assertEqual(x, x_test)
+        self.assertEqual(y, y_test)
+    def test_calculate_points(self):
+        self.gingerbreadmap.calculate(0)
+        xs1, ys1 = self.gingerbreadmap.get_points()
+        x0 = y0 = 0.5
+        x_test = 1 - y0 + abs(x0)
+        y_test = x0
+        self.assertEqual(xs1[1], x_test)
+        self.assertEqual(ys1[1], y_test)
+
+class TestStandardMap(TestCase):
+    def setUp(self):
+        self.gingerbreadmap = StandardMap(1.5,1,1)
+
+    def test_calculate(self):
+        x0 = y0 = 1
+        x, y = self.gingerbreadmap.step(x0, y0)
+        y_test = y0 + 1.5 * sin(x0)
+        x_test = x0 + y_test
+        self.assertEqual(x, x_test)
+        self.assertEqual(y, y_test)
+    def test_calculate_points(self):
+        self.gingerbreadmap.calculate(0)
+        xs1, ys1 = self.gingerbreadmap.get_points()
+        x0 = y0 = 1
+        y_test = y0 + 1.5 * sin(x0)
+        x_test = x0 + y_test
+        self.assertEqual(xs1[1], x_test)
+        self.assertEqual(ys1[1], y_test)

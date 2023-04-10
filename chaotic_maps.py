@@ -204,9 +204,9 @@ class BogdanovMap(ChaoticMap):
         super().__init__(x0, y0, a, b, c)
 
     def step(self,x,y):
-        y = y*(1+self.a+self.c*x) + self.b*x*(x-1)
-        x = x+y
-        return x,y 
+        y_new = y*(1+self.a+self.c*x) + self.b*x*(x-1)
+        x_new = x+y_new
+        return x_new, y_new 
 
 class IkedaMap(ChaoticMap):
     '''
@@ -266,7 +266,7 @@ class GingerbreadMap(ChaoticMap):
 
 class StandardMap(ChaoticMap):
     '''
-    Represents an Ikeada Map
+    Represents a Standard Map
     '''
     def __init__(
         self,
@@ -288,7 +288,8 @@ class StandardMap(ChaoticMap):
         super().__init__(x0, y0, a)
 
     def step(self,x,y):
-        x %= 2*pi
+        x %= (2*pi)
+
         y_new = y + self.a * sin(x)
         x_new = x + y_new
 
