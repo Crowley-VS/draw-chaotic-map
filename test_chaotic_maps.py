@@ -1,5 +1,5 @@
 from unittest import TestCase
-from chaotic_maps import TinkerbellMap, ChaoticMap, IkedaMap, BogdanovMap, GingerbreadMap, StandardMap
+from chaotic_maps import TinkerbellMap, ChaoticMap, IkedaMap, BogdanovMap, GingerbreadMap, StandardMap, CliffordAttractor, GumowskiMiraAttractor
 from math import sin, cos
 
 class TestChaoticMap(TestCase):
@@ -111,3 +111,31 @@ class TestStandardMap(TestCase):
         x_test = x0 + y_test
         self.assertEqual(xs1[1], x_test)
         self.assertEqual(ys1[1], y_test)
+
+class TestCliffordAttractor(TestCase):
+    def setUp(self):
+        self.cmap = CliffordAttractor()
+
+    def test_step(self):
+        x, y = self.cmap.step(0.1, 0.1)
+        expected_x = sin(self.cmap.a * 0.1) + self.cmap.c * cos(self.cmap.a * 0.1)
+        expected_y = sin(self.cmap.b * 0.1) + self.cmap.d * cos(self.cmap.b * 0.1)
+        self.assertAlmostEqual(x, expected_x)
+        self.assertAlmostEqual(y, expected_y)
+
+
+class TestGumowskiMiraAttractor(TestCase):
+    def setUp(self):
+        self.gmap = GumowskiMiraAttractor()
+
+    def test_step(self):
+        x, y = self.gmap.step(0.1, 0.1)
+        expected_x = self.gmap.b * 0.1 + self.gmap.supporting_func(0.1)
+        expected_y = self.gmap.supporting_func(expected_x) - 0.1
+        self.assertAlmostEqual(x, expected_x)
+        self.assertAlmostEqual(y, expected_y)
+
+    def test_supporting_func(self):
+        x = 0.1
+        expected = self.gmap.a * x + 2 * (1 - self.gmap.a) * x ** 2 * (1 + x ** 2) ** (-2)
+        self.assertAlmostEqual(self.gmap.supporting_func(x), expected)

@@ -295,3 +295,77 @@ class StandardMap(ChaoticMap):
 
         return x_new, y_new
 
+class CliffordAttractor(ChaoticMap):
+    '''
+    Represents a Clifford Attractor.
+    '''
+    def __init__(
+        self,
+        a: float = -2,
+        b: float = -2.4,
+        c: float = 1.1,
+        d: float = -0.9,
+        x0: float = 0.1,
+        y0: float = 0.1
+    ) -> None:
+        '''
+        Initialize a Clifford Attractor.
+        The a, b, c, d constants can be specified.
+        If not, they default to -2, -2.4, 1.1, 0.9 respectively.
+        The starting x and y coordinates can be specified.
+        If they are not, the system defaults to (0.1, 0.1).
+
+        :param a: float constant 
+        :param b: float constant 
+        :param c: float constant 
+        :param d: float constant
+        :param x0: float origin point x value
+        :param y0: float origin point y value
+        
+        '''
+        super().__init__(x0, y0, a, b, c, d)
+
+    def step(self, x, y):
+        '''
+        Perform calculations with given x and y.
+
+        :param x: float x value
+        :param y: float y value
+        '''
+        x_new = sin(self.a * y) + self.c * cos(self.a * x)
+        y_new = sin(self.b * x) + self.d * cos(self.b * y)
+        return x_new, y_new 
+    
+class GumowskiMiraAttractor(ChaoticMap):
+    '''
+    Represents a Gumowski-Mira Attractor
+    '''
+    def __init__(
+        self,
+        a: float = -0.192,
+        b: float = 0.982,
+        x0: float = 0.1,
+        y0: float = 0.1
+    ) -> None:
+        '''
+        Initialize a Bogdanov Map System.
+        The a and b constants can be specified.
+        If not, they default to -0.192, 0.982 respectively.
+        The starting x and y coordinates can be specified.
+        If they are not, the system defaults to (0.1, 0.1).
+
+        :param a: float constant 
+        :param b: float constant 
+        :param x0: float origin point x value
+        :param y0: float origin point y value
+        
+        '''
+        super().__init__(x0, y0, a, b)
+
+    def step(self,x,y):
+        x_new = self.b*y + self.supporting_func(x)
+        y_new = self.supporting_func(x_new) - x
+        return x_new, y_new 
+    
+    def supporting_func(self, x):
+        return self.a*x + 2*(1-self.a) * x**2 * (1+x**2)**(-2)
