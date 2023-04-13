@@ -32,6 +32,8 @@ class ChaoticMap:
         self.b = b
         self.c = c
         self.d = d
+        self.x0 = x0
+        self.y0 = y0 #!!!!!!!!!
         self.reset_origin(x0, y0)
 
     def calculate(self, i: int) -> None:
@@ -70,6 +72,40 @@ class ChaoticMap:
         of the the chaotic map.
         '''
         return self.xs, self.ys
+    def get_attribute(self, attribute):
+        '''
+        Get a value of a given attribute (str).
+        Attributes present in a chaotic system are
+        a, b, c, d, x0, y0
+
+        :param attribute: str
+        :returns: value of the attribute, otherwise None
+        '''
+        attributes = {'a': self.a, 'b': self.b, 'c': self.c, 'd': self.d, 'x0': self.x0, 'y0': self.y0}
+        return attributes.get(attribute, None)
+    def get_attributes(self):
+        '''
+        Get a value of a given attribute (str).
+        Attributes present in a chaotic system are
+        a, b, c, d, x0, y0
+
+        :param attribute: str
+        :returns: value of the attribute, otherwise None
+        '''
+        attributes = {'a': self.a, 'b': self.b, 'c': self.c, 'd': self.d, 'x0': self.x0, 'y0': self.y0}
+        return attributes
+    def set_attribute(self, attribute, value):
+        '''
+        Set a value (int) of a given attribute (str).
+        Attributes present in a chaotic system are
+        a, b, c, d, x0, y0
+
+        :param attribute: str
+        :param value: float
+        '''
+        if hasattr(self, attribute):
+            setattr(self, attribute, value)
+        self.reset_origin(self.x0, self.y0)
 
 
 class Simulator:
@@ -139,10 +175,10 @@ class TinkerbellMap(ChaoticMap):
     '''
     def __init__(
         self,
-        a: float,
-        b: float,
-        c: float,
-        d: float,
+        a: float = 0.9,
+        b: float = -0.6013,
+        c: float = 2,
+        d: float = 0.5,
         x0: float = 0.1,
         y0: float = 0.1
     ) -> None:
