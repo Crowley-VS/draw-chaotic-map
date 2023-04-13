@@ -3,7 +3,7 @@ from PyQt5.QtCore import QSize, Qt
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 import sys  # We need sys so that we can pass argv to QApplication
-from chaotic_maps import TinkerbellMap, Simulator, CliffordAttractor
+import chaotic_maps
 import os
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -11,11 +11,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.default_maps = {
-            'TinkerBell Map': TinkerbellMap,
-            'Ikeda Map': None,
-            'Clifford Attractor': CliffordAttractor
+            'TinkerBell Map': chaotic_maps.TinkerbellMap,
+            'Ikeda Map': chaotic_maps.IkedaMap,
+            'Clifford Attractor': chaotic_maps.CliffordAttractor,
+            'Bogdanov Map': chaotic_maps.BogdanovMap, # Bogdanov map does not work with the default range provided for sim
+            'Gingerbread Map': chaotic_maps.GingerbreadMap,
+            'Standard Map': chaotic_maps.StandardMap,
+            'Gumowski-Mira Attractor': chaotic_maps.GumowskiMiraAttractor
         }
-        self.selected_map = TinkerbellMap()
+        self.selected_map = chaotic_maps.TinkerbellMap()
         self.setWindowTitle("Draw Chaotic Map")
         self.title = self.create_title()
         self.dropdown_list_box = self.create_dropdown_list_box_maps()
@@ -53,7 +57,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_dropdown_list_box_maps(self):
         widget = QtWidgets.QComboBox()
-        widget.addItems(['TinkerBell Map', 'Ikeda Map', 'Clifford Attractor'])
+        widget.addItems([map_name for map_name in self.default_maps])
 
         # There is an alternate signal to send the text.
         widget.currentTextChanged.connect(self.get_map_selection)
@@ -61,7 +65,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def get_map_selection(self, map_name):
         # Manual test code: will be rewritten
-        sim = Simulator(self.default_maps[map_name](), 50000)
+        sim = chaotic_maps.Simulator(self.default_maps[map_name](), 50000)
         xs, ys = sim.simulate()
         self.selected_map = self.default_maps[map_name]()
         self.change_text_boxes(self.selected_map.get_attributes())
@@ -92,7 +96,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 entered_value = Map.get_attribute(label_text)
             Map.set_attribute(label_text, entered_value)
-            simulator = Simulator(Map, 50000)
+            simulator = chaotic_maps.Simulator(Map, 50000)
             
             xs, ys = simulator.simulate()
             print(xs[:6])
