@@ -13,7 +13,8 @@ class ChaoticMap:
         b: float = 0,
         c: float = 0,
         d: float = 0,
-        is_multi_point_sim: bool = False
+        is_multi_point_sim: bool = False,
+        default_range: tuple = ()
     ) -> None:
         '''
         Initialize a Chaotic Map. Origin point coordinates
@@ -22,7 +23,10 @@ class ChaoticMap:
         If they are not, system constnats default to 0.
         Different chaotic maps should be drawn using multiple
         initial points. If several points are required, is_multi_point_sim = True.
-        By default, it is False
+        By default, it is False.
+        Default range must be specified for a map that requires multiple point sim.
+        Defualt range is a tuple of format (xmin, xmax, ymin, ymax, step_size).
+        If map does not require multiple point sim, empty tuple is used
 
         :param x0: float origin point x value
         :param y0: float origin point y value
@@ -31,6 +35,8 @@ class ChaoticMap:
         :param c: float constant 
         :param d: float constant 
         :param is_multi_point_sim: bool
+        :param default_range: tuple of format (xmin, xmax, ymin, ymax, step_size) if is_multi_point_sim
+            Otherwise empty tuple
         
         '''
         self.a = a
@@ -38,8 +44,12 @@ class ChaoticMap:
         self.c = c
         self.d = d
         self.x0 = x0
-        self.y0 = y0 #!!!!!!!!!
+        self.y0 = y0 
         self.is_multi_point_sim = is_multi_point_sim
+        if not self.is_multi_point_sim:
+            self.default_range = ()
+        else:
+            self.default_range = default_range
         self.reset_origin(x0, y0)
 
     def calculate(self, i: int) -> None:
@@ -140,7 +150,7 @@ class Simulator:
         '''
         if self.chaotic_map.is_multi_point_sim:
             self.change_iter_n(int(self.iter_n/100))
-            return self.simulate_in_range(-3, 3, -3, 3, 0.5)
+            return self.simulate_in_range(self.chaotic_map.default_range)
         else:
             return self.simulate_single()
     def simulate_single(self) -> None:
@@ -155,10 +165,10 @@ class Simulator:
         for i in range(self.iter_n):
             self.chaotic_map.calculate(i)
         return self.chaotic_map.get_points()
-    def simulate_in_range(self, x0, x1, y0, y1, step):
+    def simulate_in_range(self, sim_range):
         '''
         Calclulate lists of points for x and y axis
-        of the chaotic map with starting points in a range [x0, x1] and [y0, x1]
+        of the chaotic map with starting points in a range [x0, x1] and [y0, y1]
         with a given step. Returns lists of points for
         x and y axis of the the chaotic map simulated in range.
 
@@ -171,6 +181,11 @@ class Simulator:
         '''
         result_xs = []
         result_ys = []
+        x0 = sim_range[0]
+        x1 = sim_range[1]
+        y0 = sim_range[2]
+        y1 = sim_range[3]
+        step = sim_range[4]
         for x in np.arange(x0, x1, step):
             for y in np.arange(y0, y1, step):
                 self.chaotic_map.reset_origin(x, y)
@@ -248,6 +263,7 @@ class BogdanovMap(ChaoticMap):
         c: float = 0,
         x0: float = 0.1,
         y0: float = 0.1,
+        default_range: tuple = (-0.25, 0.2, -0.22, 0.2, 0.02)
     ) -> None:
         '''
         Initialize a Bogdanov Map System.
@@ -264,7 +280,7 @@ class BogdanovMap(ChaoticMap):
         :param y0: float origin point y value
         
         '''
-        super().__init__(x0, y0, a, b, c, is_multi_point_sim=True)
+        super().__init__(x0, y0, a, b, c, is_multi_point_sim=True, default_range=default_range)
 
     def step(self,x,y):
         y_new = y*(1+self.a+self.c*x) + self.b*x*(x-1)
@@ -294,7 +310,7 @@ class IkedaMap(ChaoticMap):
         :param y0: float origin point y value
         
         '''
-        super().__init__(x0, y0, a, is_multi_point_sim = True)
+        super().__init__(x0, y0, a, is_multi_point_sim = True, default_range=(-3, 3, -3, 3, 0.5))
 
     def step(self,x,y):
         t = 0.4 - 6/(1+x**2+y**2)
@@ -322,7 +338,7 @@ class GingerbreadMap(ChaoticMap):
         :param y0: float origin point y value
         
         '''
-        super().__init__(x0, y0, is_multi_point_sim = True)
+        super().__init__(x0, y0, is_multi_point_sim = True, default_range=(-3, 3, -3, 3, 0.3))
 
     def step(self,x,y):
         x_new = 1 - y + abs(x)
@@ -351,7 +367,7 @@ class StandardMap(ChaoticMap):
         :param y0: float origin point y value
         
         '''
-        super().__init__(x0, y0, a, is_multi_point_sim = True)
+        super().__init__(x0, y0, a, is_multi_point_sim = True, default_range=(-3, 3, -3, 3, 0.7))
 
     def step(self,x,y):
         x %= (2*pi)
@@ -427,7 +443,7 @@ class GumowskiMiraAttractor(ChaoticMap):
         :param y0: float origin point y value
         
         '''
-        super().__init__(x0, y0, a, b, is_multi_point_sim = True)
+        super().__init__(x0, y0, a, b, is_multi_point_sim = True, default_range=(-3, 3, -3, 3, 0.7))
 
     def step(self,x,y):
         x_new = self.b*y + self.supporting_func(x)

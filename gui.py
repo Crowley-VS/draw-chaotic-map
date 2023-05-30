@@ -2,7 +2,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSize, Qt
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
-import sys  # We need sys so that we can pass argv to QApplication
+import sys
 import chaotic_maps
 import os
 
@@ -24,8 +24,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.title = self.create_title()
         self.dropdown_list_box = self.create_dropdown_list_box_maps()
         self.text_boxes = self.create_text_boxes()
+        self.container_lable_text_box = self.create_container_lable_text_box(self.text_boxes)
         self.plot_widget = self.create_graph_space()
-        self.set_layout([self.title, self.dropdown_list_box, *self.text_boxes.values(), self.plot_widget])
+        self.set_layout([self.title, self.dropdown_list_box, self.container_lable_text_box, self.plot_widget])
+        simulator = chaotic_maps.Simulator(self.selected_map, 50000)
+        xs, ys = simulator.simulate()
+        self.plot_widget.clear()
+        self.plot_widget.plot(xs, ys, pen=None, symbol='o', symbolSize=1)
 
     def set_layout(self, widgets):
         layout = QtWidgets.QVBoxLayout()
@@ -36,10 +41,21 @@ class MainWindow(QtWidgets.QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
     
+    def create_container_lable_text_box(self, text_boxes):
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QGridLayout(widget)
+        row = 0
+        for label_text, widget_textbox in text_boxes.items():
+            widget_label = QtWidgets.QLabel(label_text)
+            layout.addWidget(widget_label, row, 0)
+            layout.addWidget(widget_textbox, row, 1)
+            row += 1
+        return widget
+
     def create_text_boxes(self):
         widgets = {}
         for label_text in ['a', 'b', 'c', 'd', 'x0', 'y0']:
-            label = QtWidgets.QLabel(label_text)
+            
             widget = QtWidgets.QLineEdit()
             widget.setMaxLength(10)
             widget.setPlaceholderText(f"Enter {label_text}")
@@ -94,12 +110,11 @@ class MainWindow(QtWidgets.QMainWindow):
             if entered_text:
                 entered_value = float(entered_text)
             else:
-                entered_value = Map.get_attribute(label_text)
+                entered_value = 0
             Map.set_attribute(label_text, entered_value)
             simulator = chaotic_maps.Simulator(Map, 50000)
             
             xs, ys = simulator.simulate()
-            print(xs[:6])
             self.plot_widget.clear()
             self.plot_widget.plot(xs, ys, pen=None, symbol='o', symbolSize=1)
         else:
