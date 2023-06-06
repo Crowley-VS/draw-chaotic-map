@@ -56,27 +56,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_container_sub_text_boxes(self, text_boxes):
         widget = QtWidgets.QWidget()
-        if self.selected_map.is_multi_point_sim:
-            layout = QtWidgets.QHBoxLayout(widget)
-            for label_text, widget_textbox in text_boxes.items():
-                widget_label = QtWidgets.QLabel(label_text)
-                layout.addWidget(widget_label)
-                layout.addWidget(widget_textbox)
+        layout = QtWidgets.QHBoxLayout(widget)
+        widget.setVisible(self.selected_map.is_multi_point_sim)
+        for label_text, widget_textbox in text_boxes.items():
+            widget_label = QtWidgets.QLabel(label_text)
+            layout.addWidget(widget_label)
+            layout.addWidget(widget_textbox)
         return widget
 
     def create_sub_text_boxes(self):
         widgets = {}
-        if self.selected_map.is_multi_point_sim:
-            for label_text in ['xmin', 'xmax', 'ymin', 'ymax', 'step_size']:
-                widget = QtWidgets.QLineEdit()
-                widget.setMaxLength(10)
-                widget.setPlaceholderText(f"Enter {label_text}")
-                # Set the default text to the current value of the attribute
-                Map = self.selected_map
-                default_text = str(Map.get_attribute(label_text))
-                widget.setText(default_text)
-                widget.editingFinished.connect(lambda label_text=label_text, widget=widget: self.update_map(label_text, widget.text()))
-                widgets[label_text] = widget
+        for label_text in ['xmin', 'xmax', 'ymin', 'ymax', 'step_size']:
+            widget = QtWidgets.QLineEdit()
+            widget.setMaxLength(10)
+            widget.setPlaceholderText(f"Enter {label_text}")
+            # Set the default text to the current value of the attribute
+            Map = self.selected_map
+            default_text = str(Map.get_attribute(label_text))
+            widget.setText(default_text)
+            widget.editingFinished.connect(lambda label_text=label_text, widget=widget: self.update_map(label_text, widget.text()))
+            widgets[label_text] = widget
         return widgets
     
     def create_main_text_boxes(self):
@@ -121,13 +120,18 @@ class MainWindow(QtWidgets.QMainWindow):
         xs, ys = sim.simulate()
         self.selected_map = self.default_maps[map_name]()
         self.change_text_boxes(self.selected_map.get_attributes())
-        self.sub_text_boxes = self.create_sub_text_boxes()
-        self.container_sub_text_boxes = self.create_container_sub_text_boxes(self.sub_text_boxes)
-        self.set_layout([self.title, self.dropdown_list_box, self.container_lable_text_box, self.container_sub_text_boxes, self.plot_widget])
+        self.update_sub_text_boxes()
         self.plot_widget.clear()
         self.plot_widget.plot(xs, ys, pen=None, symbol='o', symbolSize=1)
         #self.plot_widget.plotItem.vb.autoRange()
-        
+    
+    def update_sub_text_boxes(self):
+        if self.selected_map.is_multi_point_sim:
+        # Update the existing sub text boxes
+            for label_text, widget_textbox in self.sub_text_boxes.items():
+                widget_textbox.setText(str(self.selected_map.get_attribute(label_text)))
+
+        self.container_sub_text_boxes.setVisible(self.selected_map.is_multi_point_sim)
 
     def create_title(self):
         widget = QtWidgets.QLabel('Draw Chaotic Map')
