@@ -14,7 +14,8 @@ class ChaoticMap:
         c: float = 0,
         d: float = 0,
         is_multi_point_sim: bool = False,
-        default_range: tuple = ()
+        default_range: tuple = (),
+        sim_range: list = []
     ) -> None:
         '''
         Initialize a Chaotic Map. Origin point coordinates
@@ -27,6 +28,9 @@ class ChaoticMap:
         Default range must be specified for a map that requires multiple point sim.
         Defualt range is a tuple of format (xmin, xmax, ymin, ymax, step_size).
         If map does not require multiple point sim, empty tuple is used
+        Sim range doesn't have to be specified.
+        Sim range is a list of format (xmin, xmax, ymin, ymax, step_size) or an empty list.
+        If map does not require multiple point sim, empty list is used
 
         :param x0: float origin point x value
         :param y0: float origin point y value
@@ -37,7 +41,7 @@ class ChaoticMap:
         :param is_multi_point_sim: bool
         :param default_range: tuple of format (xmin, xmax, ymin, ymax, step_size) if is_multi_point_sim
             Otherwise empty tuple
-        
+        :param sim_range: list of format [xmin, xmax, ymin, ymax, step_size] or empty list if is_multi_point_sim
         '''
         self.a = a
         self.b = b
@@ -48,8 +52,10 @@ class ChaoticMap:
         self.is_multi_point_sim = is_multi_point_sim
         if not self.is_multi_point_sim:
             self.default_range = ()
+            self.sim_range = []
         else:
             self.default_range = default_range
+            self.sim_range = sim_range
         self.reset_origin(x0, y0)
 
     def calculate(self, i: int) -> None:
@@ -93,10 +99,18 @@ class ChaoticMap:
         Get a value of a given attribute (str).
         Attributes present in a chaotic system are
         a, b, c, d, x0, y0
+            if chaotic map requires multi point sim, then
+            there are also  xmin, xmax, ymin, ymax, step_size
 
         :param attribute: str
         :returns: value of the attribute, otherwise None
         '''
+        if attribute in ['xmin', 'xmax', 'ymin', 'ymax', 'step_size'] and self.is_multi_point_sim:
+            range_i = ['xmin', 'xmax', 'ymin', 'ymax', 'step_size'].index(attribute)
+            if self.sim_range:
+                return self.sim_range[range_i]
+            else:
+                return self.default_range[range_i]
         attributes = {'a': self.a, 'b': self.b, 'c': self.c, 'd': self.d, 'x0': self.x0, 'y0': self.y0}
         return attributes.get(attribute, None)
     def get_attributes(self):
@@ -115,10 +129,23 @@ class ChaoticMap:
         Set a value (int) of a given attribute (str).
         Attributes present in a chaotic system are
         a, b, c, d, x0, y0
+            if chaotic map requires multi point sim, then
+            there are also xmin, xmax, ymin, ymax, step_size
+        Raises an error if xmin, xmax, ymin, ymax, or step_size
+        are set when chaotic map does not requires multi point sim.
 
         :param attribute: str
         :param value: float
         '''
+        if attribute in ['xmin', 'xmax', 'ymin', 'ymax', 'step_size'] and self.is_multi_point_sim:
+            range_i = ['xmin', 'xmax', 'ymin', 'ymax', 'step_size'].index(attribute)
+            if self.sim_range:
+                self.sim_range[range_i] = value
+            else:
+                self.sim_range = list(self.default_range[:])
+                self.sim_range[range_i] = value
+        elif attribute in ['xmin', 'xmax', 'ymin', 'ymax', 'step_size'] and not self.is_multi_point_sim:
+            raise ValueError
         if hasattr(self, attribute):
             setattr(self, attribute, value)
         self.reset_origin(self.x0, self.y0)
@@ -150,7 +177,11 @@ class Simulator:
         '''
         if self.chaotic_map.is_multi_point_sim:
             self.change_iter_n(int(self.iter_n/100))
-            return self.simulate_in_range(self.chaotic_map.default_range)
+            if not self.chaotic_map.sim_range:
+                sim_range = self.chaotic_map.default_range
+            else:
+                sim_range = self.chaotic_map.sim_range
+            return self.simulate_in_range(sim_range)
         else:
             return self.simulate_single()
     def simulate_single(self) -> None:

@@ -139,3 +139,189 @@ class TestGumowskiMiraAttractor(TestCase):
         x = 0.1
         expected = self.gmap.a * x + 2 * (1 - self.gmap.a) * x ** 2 * (1 + x ** 2) ** (-2)
         self.assertAlmostEqual(self.gmap.supporting_func(x), expected)
+class TestChaoticMapGetAttribute(TestCase):
+
+    def setUp(self):
+        # Create a ChaoticMap instance with sample values
+        self.map = ChaoticMap(
+            x0=1.0,
+            y0=2.0,
+            a=0.5,
+            b=0.2,
+            c=0.8,
+            d=0.4,
+            is_multi_point_sim=True,
+            default_range=(0, 10, -5, 5, 0.1),
+            sim_range=[]
+        )
+
+    def test_get_attribute_existing(self):
+        self.assertEqual(self.map.get_attribute('a'), 0.5)
+        self.assertEqual(self.map.get_attribute('b'), 0.2)
+        self.assertEqual(self.map.get_attribute('c'), 0.8)
+        self.assertEqual(self.map.get_attribute('d'), 0.4)
+        self.assertEqual(self.map.get_attribute('x0'), 1.0)
+        self.assertEqual(self.map.get_attribute('y0'), 2.0)
+        self.assertEqual(self.map.get_attribute('xmin'), 0)
+        self.assertEqual(self.map.get_attribute('xmax'), 10)
+        self.assertEqual(self.map.get_attribute('ymin'), -5)
+        self.assertEqual(self.map.get_attribute('ymax'), 5)
+        self.assertEqual(self.map.get_attribute('step_size'), 0.1)
+
+    def test_get_attribute_nonexistent(self):
+        self.assertIsNone(self.map.get_attribute('invalid_attr'))
+        self.assertIsNone(self.map.get_attribute('k'))
+
+    def test_get_attribute_not_multi_point_sim(self):
+        map_single = ChaoticMap(x0=1.0, y0=2.0)
+        self.assertIsNone(map_single.get_attribute('xmin'))
+        self.assertIsNone(map_single.get_attribute('xmax'))
+        self.assertIsNone(map_single.get_attribute('ymin'))
+        self.assertIsNone(map_single.get_attribute('ymax'))
+        self.assertIsNone(map_single.get_attribute('step_size'))
+
+    def test_get_attribute_no_sim_range(self):
+        map_no_range = ChaoticMap(
+            x0=1.0,
+            y0=2.0,
+            a=0.5,
+            b=0.2,
+            c=0.8,
+            d=0.4,
+            is_multi_point_sim=True,
+            default_range=(0, 10, -5, 5, 0.1),
+            sim_range=[]
+        )
+        self.assertEqual(map_no_range.get_attribute('xmin'), 0)
+        self.assertEqual(map_no_range.get_attribute('xmax'), 10)
+        self.assertEqual(map_no_range.get_attribute('ymin'), -5)
+        self.assertEqual(map_no_range.get_attribute('ymax'), 5)
+        self.assertEqual(map_no_range.get_attribute('step_size'), 0.1)
+class TestChaoticMapSetAttribute(TestCase):
+
+    def setUp(self):
+        # Create a ChaoticMap instance with sample values
+        self.map = ChaoticMap(
+            x0=1.0,
+            y0=2.0,
+            a=0.5,
+            b=0.2,
+            c=0.8,
+            d=0.4,
+            is_multi_point_sim=True,
+            default_range=(0, 10, -5, 5, 0.1),
+            sim_range=[]
+        )
+
+    def test_set_attribute_existing(self):
+        self.map.set_attribute('a', 0.3)
+        self.assertEqual(self.map.get_attribute('a'), 0.3)
+        self.map.set_attribute('b', 0.1)
+        self.assertEqual(self.map.get_attribute('b'), 0.1)
+        self.map.set_attribute('x0', 2.5)
+        self.assertEqual(self.map.get_attribute('x0'), 2.5)
+
+    def test_set_attribute_range(self):
+        self.map.set_attribute('xmin', -5)
+        self.assertEqual(self.map.get_attribute('xmin'), -5)
+        self.map.set_attribute('xmax', 15)
+        self.assertEqual(self.map.get_attribute('xmax'), 15)
+        self.map.set_attribute('ymin', -10)
+        self.assertEqual(self.map.get_attribute('ymin'), -10)
+        self.map.set_attribute('ymax', 10)
+        self.assertEqual(self.map.get_attribute('ymax'), 10)
+        self.map.set_attribute('step_size', 0.2)
+        self.assertEqual(self.map.get_attribute('step_size'), 0.2)
+
+    def test_set_attribute_nonexistent(self):
+        self.map.set_attribute('invalid_attr', 123)
+        self.assertIsNone(self.map.get_attribute('invalid_attr'))
+        self.map.set_attribute('z', 456)
+        self.assertIsNone(self.map.get_attribute('z'))
+
+    def test_set_attribute_no_sim_range(self):
+        map_no_range = ChaoticMap(
+            x0=1.0,
+            y0=2.0,
+            a=0.5,
+            b=0.2,
+            c=0.8,
+            d=0.4,
+            is_multi_point_sim=True,
+            default_range=(0, 10, -5, 5, 0.1),
+            sim_range=[]
+        )
+        map_no_range.set_attribute('xmin', -5)
+        self.assertEqual(map_no_range.get_attribute('xmin'), -5)
+        map_no_range.set_attribute('xmax', 15)
+        self.assertEqual(map_no_range.get_attribute('xmax'), 15)
+        map_no_range.set_attribute('ymin', -10)
+        self.assertEqual(map_no_range.get_attribute('ymin'), -10)
+        map_no_range.set_attribute('ymax', 10)
+        self.assertEqual(map_no_range.get_attribute('ymax'), 10)
+        map_no_range.set_attribute('step_size', 0.2)
+        self.assertEqual(map_no_range.get_attribute('step_size'), 0.2)
+
+    def test_set_attribute_without_sim_range_range_attributes(self):
+        map_no_range = ChaoticMap(
+            x0=1.0,
+            y0=2.0,
+            a=0.5,
+            b=0.2,
+            c=0.8,
+            d=0.4,
+            is_multi_point_sim=False,
+            default_range=(),
+            sim_range=[]
+        )
+        with self.assertRaises(ValueError):
+            map_no_range.set_attribute('xmin', -2)
+        with self.assertRaises(ValueError):
+            map_no_range.set_attribute('xmax', 8)
+        with self.assertRaises(ValueError):
+            map_no_range.set_attribute('ymin', -3)
+        with self.assertRaises(ValueError):
+            map_no_range.set_attribute('ymax', 4)
+        with self.assertRaises(ValueError):
+            map_no_range.set_attribute('step_size', 0.2)
+    def test_set_attribute_with_sim_range(self):
+        map_with_range = ChaoticMap(
+            x0=1.0,
+            y0=2.0,
+            a=0.5,
+            b=0.2,
+            c=0.8,
+            d=0.4,
+            is_multi_point_sim=True,
+            default_range=(0, 10, -5, 5, 0.1),
+            sim_range=[-2, 2, -1, 1, 0.2]
+        )
+        map_with_range.set_attribute('xmin', -5)
+        self.assertEqual(map_with_range.get_attribute('xmin'), -5)
+        map_with_range.set_attribute('xmax', 15)
+        self.assertEqual(map_with_range.get_attribute('xmax'), 15)
+        map_with_range.set_attribute('ymin', -10)
+        self.assertEqual(map_with_range.get_attribute('ymin'), -10)
+        map_with_range.set_attribute('ymax', 10)
+        self.assertEqual(map_with_range.get_attribute('ymax'), 10)
+        map_with_range.set_attribute('step_size', 0.2)
+        self.assertEqual(map_with_range.get_attribute('step_size'), 0.2)
+
+    def test_set_attribute_without_sim_range(self):
+        map_no_range = ChaoticMap(
+            x0=1.0,
+            y0=2.0,
+            a=0.5,
+            b=0.2,
+            c=0.8,
+            d=0.4,
+            is_multi_point_sim=False,
+            default_range=(),
+            sim_range=[]
+        )
+        map_no_range.set_attribute('a', 0.3)
+        self.assertEqual(map_no_range.get_attribute('a'), 0.3)
+        map_no_range.set_attribute('b', 0.1)
+        self.assertEqual(map_no_range.get_attribute('b'), 0.1)
+        map_no_range.set_attribute('x0', 2.5)
+        self.assertEqual(map_no_range.get_attribute('x0'), 2.5)
