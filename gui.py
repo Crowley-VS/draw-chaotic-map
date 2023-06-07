@@ -3,6 +3,7 @@ from PyQt5.QtCore import QSize, Qt
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 import sys
+from typing import Union
 import chaotic_maps
 import os
 
@@ -10,25 +11,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.default_maps = {
-            'TinkerBell Map': chaotic_maps.TinkerbellMap,
-            'Ikeda Map': chaotic_maps.IkedaMap,
-            'Clifford Attractor': chaotic_maps.CliffordAttractor,
-            'Bogdanov Map': chaotic_maps.BogdanovMap, # Bogdanov map does not work with the default range provided for sim
-            'Gingerbread Map': chaotic_maps.GingerbreadMap,
-            'Standard Map': chaotic_maps.StandardMap,
-            'Gumowski-Mira Attractor': chaotic_maps.GumowskiMiraAttractor
-        }
-        self.selected_map = chaotic_maps.TinkerbellMap()
+        self.default_maps = chaotic_maps.default_maps
+        self.selected_map = self.default_maps['TinkerBell Map']()
+
         self.setWindowTitle("Draw Chaotic Map")
         self.title = self.create_title()
         self.dropdown_list_box = self.create_dropdown_list_box_maps()
         self.text_boxes = self.create_main_text_boxes()
         self.sub_text_boxes = self.create_sub_text_boxes()
-        self.container_lable_text_box = self.create_container_lable_text_box(self.text_boxes)
+        self.container_lable_text_box = self.create_container_label_text_boxes(self.text_boxes)
         self.container_sub_text_boxes = self.create_container_sub_text_boxes(self.sub_text_boxes)
         self.plot_widget = self.create_graph_space()
         self.set_layout([self.title, self.dropdown_list_box, self.container_lable_text_box, self.container_sub_text_boxes, self.plot_widget])
+
         simulator = chaotic_maps.Simulator(self.selected_map, 50000)
         xs, ys = simulator.simulate()
         self.plot_widget.clear()
@@ -43,26 +38,38 @@ class MainWindow(QtWidgets.QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
     
-    def create_container_lable_text_box(self, text_boxes):
-        widget = QtWidgets.QWidget()
-        layout = QtWidgets.QGridLayout(widget)
-        row = 0
-        for label_text, widget_textbox in text_boxes.items():
-            widget_label = QtWidgets.QLabel(label_text)
-            layout.addWidget(widget_label, row, 0)
-            layout.addWidget(widget_textbox, row, 1)
-            row += 1
-        return widget
+    def create_container_text_boxes(self, text_boxes: dict, layout_type: Union[QtWidgets.QVBoxLayout, QtWidgets.QHBoxLayout]) -> QtWidgets.QWidget:
+        '''
+        Create a container of labeled text boxes with a specific layout type
 
-    def create_container_sub_text_boxes(self, text_boxes):
+        '''
+        valid_layout = (QtWidgets.QVBoxLayout, QtWidgets.QHBoxLayout)
+        if not layout_type in valid_layout:
+            raise ValueError('Invalid layout_type. Expected QVBoxLayout or QHBoxLayout.')
+        
+        widget = QtWidgets.QWidget()
+        layout = layout_type(widget)
+        for label_text, widget_textbox in text_boxes.items():
+            container_text_box = self.create_container_text_box(label_text, widget_textbox)
+            layout.addWidget(container_text_box)
+        return widget
+    
+    def create_container_text_box(self, label_text: str, widget_textbox: QtWidgets.QLineEdit):
         widget = QtWidgets.QWidget()
         layout = QtWidgets.QHBoxLayout(widget)
-        widget.setVisible(self.selected_map.is_multi_point_sim)
-        for label_text, widget_textbox in text_boxes.items():
-            widget_label = QtWidgets.QLabel(label_text)
-            layout.addWidget(widget_label)
-            layout.addWidget(widget_textbox)
+        layout.setContentsMargins(1, 1, 1, 1)
+        widget_label = QtWidgets.QLabel(label_text)
+        layout.addWidget(widget_label)
+        layout.addWidget(widget_textbox)
         return widget
+    
+    def create_container_label_text_boxes(self, text_boxes):
+        return self.create_container_text_boxes(text_boxes, QtWidgets.QVBoxLayout)
+
+    def create_container_sub_text_boxes(self, text_boxes):
+        container = self.create_container_text_boxes(text_boxes, QtWidgets.QHBoxLayout)
+        container.setVisible(self.selected_map.is_multi_point_sim)
+        return container
 
     def create_sub_text_boxes(self):
         widgets = {}

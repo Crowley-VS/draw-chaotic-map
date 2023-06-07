@@ -483,3 +483,13 @@ class GumowskiMiraAttractor(ChaoticMap):
     
     def supporting_func(self, x):
         return self.a*x + 2*(1-self.a) * x**2 * (1+x**2)**(-2)
+
+default_maps = {
+            'TinkerBell Map': TinkerbellMap,
+            'Ikeda Map': IkedaMap,
+            'Clifford Attractor': CliffordAttractor,
+            'Bogdanov Map': BogdanovMap,
+            'Gingerbread Map': GingerbreadMap,
+            'Standard Map': StandardMap,
+            'Gumowski-Mira Attractor': GumowskiMiraAttractor
+        }
