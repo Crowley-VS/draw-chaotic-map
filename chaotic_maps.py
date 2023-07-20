@@ -53,6 +53,8 @@ class ChaoticMap:
         if not self.is_multi_point_sim:
             self.default_range = ()
             self.sim_range = []
+        elif not default_range:
+            raise ValueError('Default range was not provided for a map requiring multi point simulation.')
         else:
             self.default_range = default_range
             self.sim_range = sim_range
