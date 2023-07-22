@@ -1,5 +1,5 @@
 # draw-chaotic-map
-This repository contains Python code that allows you to simulate and visually analyze chaotic maps through an intuitive graphical user interface (GUI). With this interactive tool, you can gain insights into various chaotic systems in real-time.
+This repository allows you to simulate and visually analyze chaotic maps through an intuitive graphical user interface (GUI). With this interactive tool, you can gain insights into various chaotic systems in real-time.
 
 ## Installation
 `pip install -r requirements.txt`
